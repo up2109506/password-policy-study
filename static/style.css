@@ -1,0 +1,42 @@
+body {
+    font-family: Arial;
+    background: #f4f4f4;
+}
+
+.container {
+    width: 300px;
+    margin: 100px auto;
+    padding: 20px;
+    background: white;
+    text-align: center;
+    border-radius: 10px;
+}
+
+input {
+    padding: 10px;
+    width: 90%;
+    margin: 10px 0;
+}
+
+button {
+    padding: 10px;
+    width: 100%;
+}
+
+#progress {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.consent-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.consent-box input {
+    margin-top: 4px;
+}

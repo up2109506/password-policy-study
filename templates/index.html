@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Policy Study</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Password Policy Study</h2>
+    <p id="progress"></p>
+    <ul id="policyList"></ul>
+
+    <input type="password" id="password" placeholder="Enter password">
+    <button id="submitBtn" onclick="submitPassword()">Submit</button>
+
+    <p id="feedback"></p>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/zxcvbn/4.4.2/zxcvbn.js"></script>
+<script>
+let sessionId = Date.now() + "-" + Math.random().toString(36).substring(2);
+
+let allPolicies = [
+    {id: 1, type: "weak", rules: {minLength: 6}},
+    {id: 2, type: "weak", rules: {minLength: 7}},
+
+    {id: 3, type: "medium", rules: {minLength: 8, number: true}},
+    {id: 4, type: "medium", rules: {minLength: 9, number: true}},
+
+    {id: 5, type: "strong", rules: {minLength: 12, number: true, symbol: true}},
+    {id: 6, type: "strong", rules: {minLength: 10, number: true, symbol: true}}
+];
+
+function getRandomPolicies() {
+
+    // Step 1: Group policies by type
+    let grouped = {
+        weak: allPolicies.filter(p => p.type === "weak"),
+        medium: allPolicies.filter(p => p.type === "medium"),
+        strong: allPolicies.filter(p => p.type === "strong")
+    };
+
+    // Step 2: Get list of types
+    let types = Object.keys(grouped);
+
+    // Step 3: Shuffle types and pick 2 different ones
+    let shuffledTypes = types.sort(() => 0.5 - Math.random());
+    let selectedTypes = shuffledTypes.slice(0, 2);
+
+    // Step 4: Pick one random policy from each type
+    let selectedPolicies = selectedTypes.map(type => {
+        let policies = grouped[type];
+        return policies[Math.floor(Math.random() * policies.length)];
+    });
+
+    return selectedPolicies;
+}
+
+let selectedPolicies = getRandomPolicies();
+let currentPolicy = 0;
+
+let attempts = 0;
+let startTime = Date.now();
+
+function showPolicy() {
+    document.getElementById("progress").innerText =
+    `Policy ${currentPolicy + 1} of ${selectedPolicies.length}`;
+
+    let p = selectedPolicies[currentPolicy].rules;
+
+    let list = document.getElementById("policyList");
+    list.innerHTML = ""; // clear previous
+
+    // Add rules as bullet points
+    let rules = [];
+
+    rules.push(`At least ${p.minLength} characters`);
+
+    if (p.number) rules.push("At least one number");
+    if (p.symbol) rules.push("At least one symbol (!@#$%^&*)");
+
+    // Render bullets
+    rules.forEach(rule => {
+        let li = document.createElement("li");
+        li.textContent = rule;
+        list.appendChild(li);
+    });
+}
+
+function validate(password, policy) {
+    let rules = policy.rules;
+
+    if (password.length < rules.minLength) return false;
+    if (rules.number && !/\d/.test(password)) return false;
+    if (rules.symbol && !/[!@#$%^&*]/.test(password)) return false;
+
+    return true;
+}
+
+function submitPassword() {
+
+    let button = document.getElementById("submitBtn");
+    button.disabled = true;
+
+    let password = document.getElementById("password").value;
+    let result = zxcvbn(password);
+    let strengthScore = result.score; // 0–4
+    let policy = selectedPolicies[currentPolicy];
+    attempts++;
+
+    if (password.length === 0) {
+        document.getElementById("feedback").innerText = "❌ Please enter a password";
+        button.disabled = false;
+        return;
+    }
+
+    if (!validate(password, policy)) {
+        document.getElementById("feedback").innerText = "❌ Password does not meet the requirements";
+        button.disabled = false; // re-enable
+        return;
+    } else {
+        document.getElementById("feedback").innerText = "";
+    }
+
+    let timeTaken = (Date.now() - startTime) / 1000;
+
+    fetch("/submit", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            session_id: sessionId,
+            policy_id: policy.id,
+            policy_type: policy.type,
+            time: timeTaken,
+            attempts: attempts,
+            length: password.length,
+            strength: strengthScore
+        })
+    })
+    .then(() => {
+    
+        button.disabled = false;
+    
+        currentPolicy++;
+        attempts = 0;
+        startTime = Date.now();
+        document.getElementById("password").value = "";
+    
+        if (currentPolicy < selectedPolicies.length) {
+            showPolicy();
+            document.getElementById("feedback").innerText =
+                "✅ Password accepted. Moving to next policy...";
+        } else {
+            document.querySelector(".container").innerHTML = `
+                <h2>Study Complete</h2>
+                <p>Thank you for participating.</p>
+                <p>Your responses have been recorded.</p>
+            `;
+        }
+    
+    });
+}
+
+showPolicy();
+</script>
+
+</body>
+</html>

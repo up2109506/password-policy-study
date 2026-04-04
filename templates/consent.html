@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Consent</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Participant Information</h2>
+
+    <p>
+        This study investigates how different password policies affect usability and security.
+    </p>
+
+    <p>
+        During this study, the following data will be collected:
+        <ul>
+            <li>Password length</li>
+            <li>Time taken to create a password</li>
+            <li>Number of attempts</li>
+        </ul>
+    </p>
+
+    <p><strong>No personally identifiable information will be collected.</strong></p>
+
+    <p><strong>Please do NOT use any real passwords.</strong></p>
+
+    <p>
+        By clicking "Accept", you consent to participate in this study.
+    </p>
+
+    <div class="consent-box">
+        <input type="checkbox" id="consentCheckbox">
+        <label for="consentCheckbox">
+            I have read the information above and agree to participate
+        </label>
+    </div>
+    
+    <br><br>
+    
+    <button id="startBtn" onclick="startTest()" disabled>
+        Accept and Begin
+    </button>
+</div>
+
+<script>
+// Enable button only when checkbox is ticked
+document.getElementById("consentCheckbox").addEventListener("change", function() {
+    document.getElementById("startBtn").disabled = !this.checked;
+});
+
+function startTest() {
+    window.location.href = "/test";
+}
+</script>
+
+</body>
+</html>

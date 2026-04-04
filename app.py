@@ -12,6 +12,12 @@ def consent():
 def index():
     return render_template("index.html")
 
+from flask import send_file
+
+@app.route("/download")
+def download():
+    return send_file("data.csv", as_attachment=True)
+
 @app.route("/submit", methods=["POST"])
 def submit():
     data = request.json
